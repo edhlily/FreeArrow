@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="zjsx.freearrow.MainActivity">
+
+    <zjsx.freearrow.lib.FreeArrowView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="10dp"
+        app:arrowColor="#FFF"
+        app:poleColor="#FFF"
+        app:lineStrokeWidth="3dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:background="#FF0000"/>
+
+    <zjsx.freearrow.lib.FreeArrowView
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:layout_margin="10dp"
+        app:orientation="right"
+        app:withPole="true"
+        app:arrowColor="#FFF"
+        app:poleColor="#FFF"
+        app:lineStrokeWidth="3dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:background="#FF0000"/>
+
+    <zjsx.freearrow.lib.FreeArrowView
+        android:layout_width="50dp"
+        android:layout_height="100dp"
+        android:layout_margin="10dp"
+        app:withPole="true"
+        app:orientation="up"
+        app:arrowColor="#FFF"
+        app:poleColor="#FFF"
+        app:lineStrokeWidth="3dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:background="#FF0000"/>
+
+    <zjsx.freearrow.lib.FreeArrowView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="10dp"
+        app:orientation="down"
+        app:arrowColor="#FFF"
+        app:poleColor="#FFF"
+        app:lineStrokeWidth="3dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:background="#FF0000"/>
+
+    <!--orientation：箭头方向，默认：左（left）-->
+    <!--arrowColor：箭头颜色，默认：黑色-->
+    <!--withPole：是否显示横线，默认：不显示-->
+    <!--poleRatio：不包含箭头的部分宽度（Gravity横向时）/高度（Gravity为纵向时）占控件（不包含padding）的比例，默认：0.5-->
+    <!--poleWidth：横线的长度，默认：整个内容长度-->
+    <!--poleColor：横线颜色，默认：黑色-->
+    <!--lineStrokeWidth：线的粗细，默认：1dp-->
+    <!-- view没有预留Padding值，务必要给padding值，这样不会造成边缘截断 -->
+    <zjsx.freearrow.lib.FreeArrowView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="10dp"
+        app:orientation="right"
+        app:arrowColor="#00F"
+        app:withPole="true"
+        app:poleWidth="20dp"
+        app:poleRatio="0.5"
+        app:poleColor="#0F0"
+        app:lineStrokeWidth="3dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:background="#FF0000"/>
+
+
+</LinearLayout>
