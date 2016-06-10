@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.Path;
+import android.graphics.PathEffect;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -25,35 +27,44 @@ public class FreeArrowView extends TextView {
     Paint paint;
     int orientation;
     boolean withPole;
-    int poleColor;
     int arrowColor;
     float poleRatio;
     float poleWidth;
     float lineStrokeWidth;
+    boolean fillArrow;
+    float arrowThick;
+    boolean dashPole;
+    float dashWidth;
+    float dashGap;
+
     public FreeArrowView(Context context) {
         super(context);
-        init(context,null);
+        init(context, null);
     }
 
     public FreeArrowView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context,attrs);
+        init(context, attrs);
     }
 
     public FreeArrowView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context,attrs);
+        init(context, attrs);
     }
 
-    void init(Context context,AttributeSet attrs){
+    void init(Context context, AttributeSet attrs) {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.FreeArrowView);
-        orientation = ta.getInt(R.styleable.FreeArrowView_orientation,LEFT);
-        withPole = ta.getBoolean(R.styleable.FreeArrowView_withPole,false);
+        orientation = ta.getInt(R.styleable.FreeArrowView_orientation, LEFT);
+        withPole = ta.getBoolean(R.styleable.FreeArrowView_withPole, false);
         arrowColor = ta.getColor(R.styleable.FreeArrowView_arrowColor, Color.BLACK);
-        poleColor = ta.getColor(R.styleable.FreeArrowView_poleColor,Color.BLACK);
-        poleRatio = ta.getFloat(R.styleable.FreeArrowView_poleRatio,0.5f);
-        poleWidth = ta.getDimension(R.styleable.FreeArrowView_poleWidth,-1f);
-        lineStrokeWidth = ta.getDimension(R.styleable.FreeArrowView_lineStrokeWidth,dip2px(context,1));
+        poleRatio = ta.getFloat(R.styleable.FreeArrowView_poleRatio, 0.5f);
+        poleWidth = ta.getDimension(R.styleable.FreeArrowView_poleWidth, -1f);
+        lineStrokeWidth = ta.getDimension(R.styleable.FreeArrowView_lineStrokeWidth, dip2px(context, 1));
+        fillArrow = ta.getBoolean(R.styleable.FreeArrowView_fillArrow, false);
+        arrowThick = ta.getDimension(R.styleable.FreeArrowView_arrowThick, 0);
+        dashPole = ta.getBoolean(R.styleable.FreeArrowView_dashPole, false);
+        dashWidth = ta.getDimension(R.styleable.FreeArrowView_dashWidth, 0);
+        dashGap = ta.getDimension(R.styleable.FreeArrowView_dashGap, 0);
         ta.recycle();
 
         paint = new Paint();
@@ -62,8 +73,10 @@ public class FreeArrowView extends TextView {
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG));
         super.draw(canvas);
+        canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
+        paint.setStrokeWidth(lineStrokeWidth);
+        paint.setColor(arrowColor);
         drawPole(canvas);
         drawArrow(canvas);
     }
@@ -73,185 +86,251 @@ public class FreeArrowView extends TextView {
     public static final int DIRECTION_RIGHT = 2;
     public static final int DIRECTION_DOWN = 3;
 
-    int getContentWidth(){
+    int getContentWidth() {
         return mViewWidth - getPaddingLeft() - getPaddingRight();
     }
 
-    int getContentHeight(){
+    int getContentHeight() {
         return mViewHeight - getPaddingTop() - getPaddingBottom();
     }
 
-    int getRatioWidth(){
-        if(orientation == LEFT || orientation == RIGHT){
+    int getRatioWidth() {
+        if (orientation == LEFT || orientation == RIGHT) {
             return getContentWidth();
-        }else{
+        } else {
             return getContentHeight();
         }
     }
 
-    int getArrowWidth(){
-        if(withPole&&poleRatio>0){
-            return Math.round(getRatioWidth()*(1-poleRatio));
-        }else{
+    int getArrowWidth() {
+        if (withPole && poleRatio > 0) {
+            return Math.round(getRatioWidth() * (1 - poleRatio));
+        } else {
             return Math.round(getRatioWidth());
         }
     }
 
-    Point getArrowStart(){
-        int x,y;
-        switch (orientation){
+    Point getArrowStart() {
+        int x, y;
+        switch (orientation) {
             case UP:
                 x = getPaddingLeft();
                 y = getPaddingTop() + getArrowWidth();
                 break;
             case RIGHT:
-                x = Math.round(mViewWidth-getPaddingRight()-getArrowWidth());
+                x = Math.round(mViewWidth - getPaddingRight() - getArrowWidth());
                 y = Math.round(getPaddingBottom());
                 break;
             case DOWN:
                 x = getPaddingLeft();
-                y = mViewHeight-getPaddingBottom()-getArrowWidth();
+                y = mViewHeight - getPaddingBottom() - getArrowWidth();
                 break;
             default:
-                x = Math.round(getPaddingLeft()+getArrowWidth());
+                x = Math.round(getPaddingLeft() + getArrowWidth());
                 y = Math.round(getPaddingBottom());
                 break;
         }
-        return new Point(x,y);
+        return new Point(x, y);
     }
 
-    Point getArrowCenter(){
-        int x,y;
-        switch (orientation){
+    /**
+     * 箭头外边中心
+     *
+     * @return
+     */
+    Point getArrowCenter() {
+        int x, y;
+        switch (orientation) {
             case UP:
-                x = getPaddingLeft()+getContentWidth()/2;
+                x = getPaddingLeft() + getContentWidth() / 2;
                 y = getPaddingTop();
                 break;
             case RIGHT:
-                x = mViewWidth-getPaddingRight();
-                y = getPaddingTop()+getContentHeight()/2;
+                x = mViewWidth - getPaddingRight();
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
             case DOWN:
-                x = getPaddingLeft()+getContentWidth()/2;
-                y = mViewHeight-getPaddingBottom();
+                x = getPaddingLeft() + getContentWidth() / 2;
+                y = mViewHeight - getPaddingBottom();
                 break;
             default:
                 x = getPaddingLeft();
-                y = getPaddingTop()+getContentHeight()/2;
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
         }
-        return new Point(x,y);
+        return new Point(x, y);
     }
 
-    Point getArrowEnd(){
-        int x,y;
-        switch (orientation){
+    /**
+     * 箭头内边中心
+     *
+     * @param center 箭头外边中心
+     * @return
+     */
+    Point getArrowInnerCenter(Point center) {
+        int x, y;
+        switch (orientation) {
             case UP:
-                x = mViewWidth-getPaddingRight();
-                y = getPaddingTop()+getArrowWidth();
+                x = center.x;
+                y = Math.round(center.y + arrowThick);
                 break;
             case RIGHT:
-                x = mViewWidth-getPaddingRight()-getArrowWidth();
-                y = mViewHeight-getPaddingBottom();
+                x = Math.round(center.x + arrowThick);
+                y = center.y;
                 break;
             case DOWN:
-                x = mViewWidth-getPaddingRight();
-                y = mViewHeight-getPaddingBottom()-getArrowWidth();
+                x = center.x;
+                y = Math.round(center.y - arrowThick);
                 break;
             default:
-                x = getPaddingLeft()+getArrowWidth();
-                y = mViewHeight-getPaddingBottom();
+                x = Math.round(center.x + arrowThick);
+                y = center.y;
                 break;
         }
-        return new Point(x,y);
+        return new Point(x, y);
     }
 
-    Point getPoleStart(){
-        int x,y;
-        switch (orientation){
+    Point getArrowEnd() {
+        int x, y;
+        switch (orientation) {
+            case UP:
+                x = mViewWidth - getPaddingRight();
+                y = getPaddingTop() + getArrowWidth();
+                break;
+            case RIGHT:
+                x = mViewWidth - getPaddingRight() - getArrowWidth();
+                y = mViewHeight - getPaddingBottom();
+                break;
             case DOWN:
-                x = getPaddingLeft()+getContentWidth()/2;
+                x = mViewWidth - getPaddingRight();
+                y = mViewHeight - getPaddingBottom() - getArrowWidth();
+                break;
+            default:
+                x = getPaddingLeft() + getArrowWidth();
+                y = mViewHeight - getPaddingBottom();
+                break;
+        }
+        return new Point(x, y);
+    }
+
+    Point getPoleStart() {
+        int x, y;
+        switch (orientation) {
+            case DOWN:
+                x = getPaddingLeft() + getContentWidth() / 2;
                 y = getPaddingTop();
                 break;
             case LEFT:
-                x = mViewWidth-getPaddingRight();
-                y = getPaddingTop()+getContentHeight()/2;
+                x = mViewWidth - getPaddingRight();
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
             case UP:
-                x = getPaddingLeft()+getContentWidth()/2;
-                y = mViewHeight-getPaddingBottom();
+                x = getPaddingLeft() + getContentWidth() / 2;
+                y = mViewHeight - getPaddingBottom();
                 break;
             default:
                 x = getPaddingLeft();
-                y = getPaddingTop()+getContentHeight()/2;
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
         }
-        return new Point(x,y);
+        return new Point(x, y);
     }
 
-    float getPoleWidth(){
-        if(poleWidth < 0f){
-            return getRatioWidth();
-        }else{
+    /**
+     * 实际的箭头厚度
+     *
+     * @return
+     */
+    float realArrowThick() {
+        if (arrowThick < 0) {
+            return getRatioWidth() * (1 - poleRatio);
+        } else {
+            return arrowThick;
+        }
+    }
+
+    float getPoleWidth() {
+        if (poleWidth < 0f) {
+            float width = getRatioWidth() - lineStrokeWidth;
+            return Math.min(width, getRatioWidth() - realArrowThick());
+        } else {
             return poleWidth;
         }
     }
 
-    Point getPoleEnd(Point start){
-        int x,y;
-        switch (orientation){
+    Point getPoleEnd(Point start) {
+        int x, y;
+        switch (orientation) {
             case UP:
-                x = getPaddingLeft()+getContentWidth()/2;
-                y = Math.round(start.y-getPoleWidth());
+                x = getPaddingLeft() + getContentWidth() / 2;
+                y = Math.round(start.y - getPoleWidth());
                 break;
             case RIGHT:
-                x = Math.round(start.x+getPoleWidth());
-                y = getPaddingTop()+getContentHeight()/2;
+                x = Math.round(start.x + getPoleWidth());
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
             case DOWN:
-                x = getPaddingLeft()+getContentWidth()/2;
-                y = Math.round(start.y+getPoleWidth());
+                x = getPaddingLeft() + getContentWidth() / 2;
+                y = Math.round(start.y + getPoleWidth());
                 break;
             default:
-                x = Math.round(start.x-getPoleWidth());
-                y = getPaddingTop()+getContentHeight()/2;
+                x = Math.round(start.x - getPoleWidth());
+                y = getPaddingTop() + getContentHeight() / 2;
                 break;
         }
-        return new Point(x,y);
+        return new Point(x, y);
     }
 
-    void drawPole(Canvas canvas){
-        if(withPole && poleWidth!=0) {
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(lineStrokeWidth);
-            paint.setColor(poleColor);
+    void drawPole(Canvas canvas) {
+        paint.setStyle(Paint.Style.STROKE);
+        PathEffect effects=null;
+        if (dashPole) {
+            effects = new DashPathEffect(new float[]{dashWidth,dashGap,dashWidth,dashGap}, 1);
+        }
+        paint.setPathEffect(effects);
+        if (withPole && poleWidth != 0) {
             Point start = getPoleStart();
             Point end = getPoleEnd(start);
-            canvas.drawLine(start.x,start.y,end.x,end.y,paint);
+            Path p = new Path();
+            p.moveTo(start.x, start.y);
+            p.lineTo(end.x, end.y);
+            p.close();
+            canvas.drawPath(p, paint);
         }
     }
 
-    void drawArrow(Canvas canvas){
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(lineStrokeWidth);
-        paint.setColor(arrowColor);
+    void drawArrow(Canvas canvas) {
+        paint.setPathEffect(null);
+        if (fillArrow) {
+            paint.setStyle(Paint.Style.FILL);
+        } else {
+            paint.setStyle(Paint.Style.STROKE);
+        }
         Path path = new Path();
         Point start = getArrowStart();
         Point center = getArrowCenter();
-        Point end =getArrowEnd();
-        path.moveTo(start.x,start.y);
-        path.lineTo(center.x,center.y);
-        path.lineTo(end.x,end.y);
-        canvas.drawPath(path,paint);
+        Point end = getArrowEnd();
+        path.moveTo(start.x, start.y);
+        path.lineTo(center.x, center.y);
+        path.lineTo(end.x, end.y);
+        if (arrowThick < 0) {
+            path.close();
+        } else if (arrowThick != 0) {
+            Point innerCenter = getArrowInnerCenter(center);
+            path.lineTo(innerCenter.x, innerCenter.y);
+            path.close();
+        }
+        canvas.drawPath(path, paint);
     }
 
-    int mViewWidth,mViewHeight;
+    int mViewWidth, mViewHeight;
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         mViewWidth = w;
         mViewHeight = h;
-        Log.d(FreeArrowView.class.getName(),"mViewWidth："+w+"-"+"mViewHeight:"+h);
+        Log.d(FreeArrowView.class.getName(), "mViewWidth：" + w + "-" + "mViewHeight:" + h);
     }
 
     // 根据手机的分辨率从 dp 的单位 转成为 px(像素)

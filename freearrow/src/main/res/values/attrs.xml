@@ -7,11 +7,15 @@
             <enum name="right" value="2" />
             <enum name="down" value="3" />
         </attr>
-        <attr name="withPole" format="boolean"/>
-        <attr name="poleColor" format="color"/>
-        <attr name="arrowColor" format="color"/>
-        <attr name="poleRatio" format="float"/>
-        <attr name="poleWidth" format="dimension"/>
-        <attr name="lineStrokeWidth" format="dimension"/>
+        <attr name="withPole" format="boolean" />
+        <attr name="arrowColor" format="color" />
+        <attr name="poleRatio" format="float" />
+        <attr name="poleWidth" format="dimension" />
+        <attr name="lineStrokeWidth" format="dimension" />
+        <attr name="fillArrow" format="boolean" />
+        <attr name="arrowThick" format="dimension" />
+        <attr name="dashPole" format="boolean" />
+        <attr name="dashGap" format="dimension" />
+        <attr name="dashWidth" format="dimension" />
     </declare-styleable>
 </resources>
